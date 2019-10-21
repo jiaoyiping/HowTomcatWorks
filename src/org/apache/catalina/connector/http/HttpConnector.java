@@ -35,12 +35,10 @@ import org.apache.catalina.util.StringManager;
  * @author Craig R. McClanahan
  * @author Remy Maucherat
  * @version $Revision: 1.34 $ $Date: 2002/03/18 07:15:39 $
- * @deprecated
  */
 
 
-public final class HttpConnector
-    implements Connector, Lifecycle, Runnable {
+public final class HttpConnector implements Connector, Lifecycle, Runnable {
 
 
     // ----------------------------------------------------- Instance Variables
@@ -864,6 +862,7 @@ public final class HttpConnector
         HttpProcessor processor = new HttpProcessor(this, curProcessors++);
         if (processor instanceof Lifecycle) {
             try {
+                //在Processor创建完毕之后，直接调用启动的方法来启动
                 ((Lifecycle) processor).start();
             } catch (LifecycleException e) {
                 log("newProcessor", e);
@@ -1147,21 +1146,30 @@ public final class HttpConnector
     public void start() throws LifecycleException {
 
         // Validate and update our current state
-        if (started)
+        if (started) {
             throw new LifecycleException
                 (sm.getString("httpConnector.alreadyStarted"));
+        }
         threadName = "HttpConnector[" + port + "]";
         lifecycle.fireLifecycleEvent(START_EVENT, null);
         started = true;
 
-        // Start our background thread
+        // 启动后台线程
         threadStart();
 
         // Create the specified minimum number of processors
+        //此时是刚启动，不一定会有客户端连接，
+        // 所以就建minProcessors个Processor
+        // 此时如果客户端已经有连接了，在httpConnector的
+        // 处理连接的方法中，也会创建连接，curProcessors会增大
         while (curProcessors < minProcessors) {
-            if ((maxProcessors > 0) && (curProcessors >= maxProcessors))
+            if ((maxProcessors > 0) && (curProcessors >= maxProcessors)) {
                 break;
+            }
+            //创建Processor
             HttpProcessor processor = newProcessor();
+
+            //将Processor加入到processors里
             recycle(processor);
         }
 

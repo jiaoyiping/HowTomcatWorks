@@ -39,7 +39,6 @@ import org.apache.catalina.util.StringParser;
  * @author Craig R. McClanahan
  * @author Remy Maucherat
  * @version $Revision: 1.46 $ $Date: 2002/04/04 17:50:34 $
- * @deprecated
  */
 
 final class HttpProcessor
@@ -288,6 +287,7 @@ final class HttpProcessor
     synchronized void assign(Socket socket) {
 
         // Wait for the Processor to get the previous Socket
+        // TODO: 2019/10/21 暂时不理解
         while (available) {
             try {
                 wait();
@@ -296,12 +296,18 @@ final class HttpProcessor
         }
 
         // Store the newly available Socket and notify our thread
+        //关联socket
         this.socket = socket;
+
+        //设置标识位,以便等待的线程被唤醒之后，能正确地执行业务逻辑
         available = true;
+
+        //唤醒在这个对象上等待的线程
         notifyAll();
 
-        if ((debug >= 1) && (socket != null))
+        if ((debug >= 1) && (socket != null)) {
             log(" An incoming request is being assigned");
+        }
 
     }
 
@@ -316,6 +322,7 @@ final class HttpProcessor
     private synchronized Socket await() {
 
         // Wait for the Connector to provide a new Socket
+        //Processor启动之后，会进入阻塞状态，等待一个socket
         while (!available) {
             try {
                 wait();
@@ -328,8 +335,9 @@ final class HttpProcessor
         available = false;
         notifyAll();
 
-        if ((debug >= 1) && (socket != null))
+        if ((debug >= 1) && (socket != null)) {
             log("  The incoming request has been awaited");
+        }
 
         return (socket);
 
@@ -969,6 +977,8 @@ final class HttpProcessor
                 ((HttpServletResponse) response).setHeader
                     ("Date", FastHttpDateFormat.getCurrentDate());
                 if (ok) {
+
+                    //调用容器的invoke方法来执行具体的业务逻辑(也就是相应的servlet)
                     connector.getContainer().invoke(request, response);
                 }
             } catch (ServletException e) {
@@ -1076,18 +1086,22 @@ final class HttpProcessor
         while (!stopped) {
 
             // Wait for the next socket to be assigned
+            //阻塞等待socket
             Socket socket = await();
-            if (socket == null)
+            if (socket == null) {
                 continue;
+            }
 
             // Process the request from this socket
             try {
+                //处理socket
                 process(socket);
             } catch (Throwable t) {
                 log("process.invoke", t);
             }
 
             // Finish up this request
+            //回收至connector的容器
             connector.recycle(this);
 
         }
@@ -1111,8 +1125,9 @@ final class HttpProcessor
         thread.setDaemon(true);
         thread.start();
 
-        if (debug >= 1)
+        if (debug >= 1) {
             log(" Background thread has been started");
+        }
 
     }
 
@@ -1187,9 +1202,10 @@ final class HttpProcessor
      */
     public void start() throws LifecycleException {
 
-        if (started)
+        if (started) {
             throw new LifecycleException
                 (sm.getString("httpProcessor.alreadyStarted"));
+        }
         lifecycle.fireLifecycleEvent(START_EVENT, null);
         started = true;
 
