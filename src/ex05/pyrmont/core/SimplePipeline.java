@@ -76,9 +76,12 @@ public class SimplePipeline implements Pipeline {
       int subscript = stage;
       stage = stage + 1;
       // Invoke the requested Valve for the current request thread
+
+      //调用阀门的时候,会把自己给传进去
       if (subscript < valves.length) {
         valves[subscript].invoke(request, response, this);
       }
+      //先调用valves数组里边的阀门,然后再调用基本阀门
       else if ((subscript == valves.length) && (basic != null)) {
         basic.invoke(request, response, this);
       }

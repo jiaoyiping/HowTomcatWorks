@@ -12,6 +12,7 @@ import org.apache.catalina.ValveContext;
 import org.apache.catalina.Contained;
 import org.apache.catalina.Container;
 
+// 用于打印请求头信息的阀门
 
 public class HeaderLoggerValve implements Valve, Contained {
 

@@ -10,6 +10,7 @@ import org.apache.catalina.ValveContext;
 import org.apache.catalina.Contained;
 import org.apache.catalina.Container;
 
+//用于打印客户端IP的阀门
 
 public class ClientIPLoggerValve implements Valve, Contained {
 
