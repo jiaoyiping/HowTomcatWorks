@@ -562,6 +562,9 @@ public final class StandardWrapper
      *
      * @param child Child container to be added
      */
+
+    //Wrapper包装的是一个servlet,处于容器的最底层,不会有子容器
+
     public void addChild(Container child) {
 
         throw new IllegalStateException
@@ -581,6 +584,9 @@ public final class StandardWrapper
         synchronized (parameters) {
             parameters.put(name, value);
         }
+
+        //触发事件(本质上是回调维护的监听器列表的相关方法)
+
         fireContainerEvent("addInitParameter", name);
 
     }
@@ -628,6 +634,9 @@ public final class StandardWrapper
      *  an exception
      * @exception ServletException if a loading error occurs
      */
+
+    //Value(阀门)会调用这个方法来取得servlet实例,然后调用service方法
+
     public Servlet allocate() throws ServletException {
 
         if (debug >= 1)
@@ -1064,6 +1073,9 @@ System.out.println("after calling setWrapper");
      * @exception ServletException if an exception is thrown by the
      *  destroy() method
      */
+
+    //卸载已经加载的类的实例
+
     public synchronized void unload() throws ServletException {
 
         // Nothing to do if we have never loaded the instance
